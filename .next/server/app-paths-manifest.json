@@ -1,0 +1,4 @@
+{
+  "/page": "app/page.js",
+  "/api/akinator/route": "app/api/akinator/route.js"
+}
