@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+export const dynamic = 'force-dynamic';
 import { runEngine } from '@/lib/engine';
 import { selectAndRephraseQuestion, generateGuessReaction } from '@/lib/groq';
 
