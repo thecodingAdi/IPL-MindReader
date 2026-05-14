@@ -1,34 +1,27 @@
 import { NextResponse } from 'next/server';
-import fs from 'fs';
-import path from 'path';
-export const dynamic = 'force-dynamic';
 import { runEngine } from '@/lib/engine';
-import { selectAndRephraseQuestion, generateGuessReaction } from '@/lib/groq';
+import { getNextQuestionAI, getGuessReactionAI } from '@/lib/ai';
+import { loadMemory } from '@/lib/services/memoryService';
+
+export const dynamic = 'force-dynamic';
 
 export async function POST(request) {
   try {
     const gameState = await request.json();
 
-    if (!gameState || typeof gameState.questionCount !== 'number' || !Array.isArray(gameState.history)) {
-      return NextResponse.json({ error: 'Invalid game state' }, { status: 400 });
+    // Basic Validation
+    if (!gameState || !Array.isArray(gameState.history)) {
+      return NextResponse.json({ error: 'Invalid game state received' }, { status: 400 });
     }
 
-    // STEP 0: Load Memory
-    let memory = null;
-    try {
-      const memoryPath = path.join(process.cwd(), 'data', 'memory.json');
-      if (fs.existsSync(memoryPath)) {
-        memory = JSON.parse(fs.readFileSync(memoryPath, 'utf8'));
-      }
-    } catch (e) {
-      console.warn("Could not load memory, continuing without learning bias.");
-    }
+    // 1. Load Learning Memory
+    const memory = loadMemory();
 
-    // STEP 1: Run local robust engine
+    // 2. Run the deterministic reasoning engine
     const engineResult = runEngine(gameState, memory, gameState.excludedIds || []);
 
-
-    let displayText = null;
+    // 3. AI Enrichment (Conversational Layer)
+    let displayText = engineResult.text;
     let reactionText = null;
     let finalAction = engineResult.action;
 
@@ -37,18 +30,20 @@ export async function POST(request) {
         .map(h => `Q: ${h.question} (Ans: ${h.answer})`)
         .join('\n');
 
-      const groqData = await selectAndRephraseQuestion(engineResult.candidates, historyText);
+      // AI Orchestrator picks and rephrases the best question
+      const aiData = await getNextQuestionAI(engineResult.candidates, historyText);
       
-      displayText = groqData.text;
-      reactionText = groqData.reaction;
-      engineResult.questionId = groqData.questionId;
-      finalAction = 'question'; // Keep frontend happy
-    } else if (engineResult.action === 'guess') {
-      displayText = engineResult.text;
-      const groqData = await generateGuessReaction(engineResult.text);
-      reactionText = groqData.reaction || null;
+      displayText = aiData.text;
+      reactionText = aiData.reaction;
+      engineResult.questionId = aiData.questionId;
+      finalAction = 'question'; // Match frontend expected key
+    } 
+    else if (engineResult.action === 'guess') {
+      // AI Orchestrator generates a dramatic build-up
+      reactionText = await getGuessReactionAI(engineResult.text);
     }
 
+    // 4. Consistent Response Format
     return NextResponse.json({
       action: finalAction,
       question: displayText,
@@ -59,10 +54,11 @@ export async function POST(request) {
       reaction: reactionText,
       playerData: engineResult.player || null
     });
+
   } catch (error) {
-    console.error('API Error:', error);
+    console.error('CRITICAL API ERROR:', error);
     return NextResponse.json(
-      { error: error.message || 'Something went wrong' },
+      { error: 'AI Brain overload! Please try again.' },
       { status: 500 }
     );
   }

@@ -1,7 +1,160 @@
 {
   "version": 1,
-  "player_stats": {},
-  "question_stats": {},
-  "failed_games": [],
-  "pending_players": []
+  "player_stats": {
+    "tm_head": {
+      "correct_guesses": 1,
+      "total_games": 1
+    },
+    "abhishek_sharma": {
+      "correct_guesses": 1,
+      "total_games": 1
+    }
+  },
+  "question_stats": {
+    "active": {
+      "usage_count": 2,
+      "success_contribution": 2
+    },
+    "indian": {
+      "usage_count": 2,
+      "success_contribution": 2
+    },
+    "role_ar": {
+      "usage_count": 1,
+      "success_contribution": 1
+    },
+    "lefty": {
+      "usage_count": 2,
+      "success_contribution": 2
+    },
+    "six_hitter": {
+      "usage_count": 2,
+      "success_contribution": 2
+    },
+    "recent_debut": {
+      "usage_count": 1,
+      "success_contribution": 1
+    },
+    "pom5": {
+      "usage_count": 2,
+      "success_contribution": 2
+    },
+    "t_srh": {
+      "usage_count": 2,
+      "success_contribution": 2
+    },
+    "century": {
+      "usage_count": 2,
+      "success_contribution": 2
+    },
+    "m100": {
+      "usage_count": 2,
+      "success_contribution": 2
+    },
+    "multi_titles": {
+      "usage_count": 1,
+      "success_contribution": 1
+    },
+    "t_dc": {
+      "usage_count": 2,
+      "success_contribution": 2
+    },
+    "middle": {
+      "usage_count": 1,
+      "success_contribution": 1
+    },
+    "role_bat": {
+      "usage_count": 2,
+      "success_contribution": 2
+    },
+    "explosive": {
+      "usage_count": 2,
+      "success_contribution": 2
+    },
+    "opener": {
+      "usage_count": 1,
+      "success_contribution": 1
+    },
+    "one_team": {
+      "usage_count": 1,
+      "success_contribution": 1
+    },
+    "titles": {
+      "usage_count": 1,
+      "success_contribution": 1
+    }
+  },
+  "failed_games": [
+    {
+      "actualName": "Travis head",
+      "guessedId": "jc_buttler",
+      "confidence": 12,
+      "history": [
+        {
+          "questionId": "role_bat",
+          "answer": "Maybe"
+        },
+        {
+          "questionId": "opener",
+          "answer": "No"
+        },
+        {
+          "questionId": "indian",
+          "answer": "No"
+        },
+        {
+          "questionId": "active",
+          "answer": "Yes"
+        },
+        {
+          "questionId": "pom5",
+          "answer": "Maybe"
+        },
+        {
+          "questionId": "explosive",
+          "answer": "Maybe"
+        },
+        {
+          "questionId": "century",
+          "answer": "Yes"
+        },
+        {
+          "questionId": "t_rr",
+          "answer": "No"
+        },
+        {
+          "questionId": "middle",
+          "answer": "No"
+        },
+        {
+          "questionId": "early_debut",
+          "answer": "No"
+        },
+        {
+          "questionId": "role_ar",
+          "answer": "No"
+        },
+        {
+          "questionId": "t_rcb",
+          "answer": "No"
+        },
+        {
+          "questionId": "multi_titles",
+          "answer": "Maybe"
+        },
+        {
+          "questionId": "r3k",
+          "answer": "No"
+        },
+        {
+          "questionId": "w50",
+          "answer": "No"
+        }
+      ],
+      "timestamp": "2026-05-14T10:23:00.345Z"
+    }
+  ],
+  "pending_players": [
+    "Travis head"
+  ]
 }

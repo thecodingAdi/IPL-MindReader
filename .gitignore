@@ -1,5 +1,34 @@
-node_modules
-.next
+# Dependencies
+node_modules/
+jspm_packages/
+
+# Next.js Build
+.next/
+out/
+build/
+
+# Environment Variables
 .env
 .env.local
+.env.development.local
+.env.test.local
+.env.production.local
+.env*.local
+
+# Debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Vercel
+.vercel
+
+# Legacy / Large Files
+iplAkinator/
 *.sql
+*.db
+*.sqlite
+
+# OS Files
+.DS_Store
+Thumbs.db
