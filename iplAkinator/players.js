@@ -313,5 +313,26 @@ const players = [
     is_overseas: false,
     is_currently_active: true,
     is_wicketkeeper: false
-  }
+  },
+  {
+  player_id: "as_01",
+  full_name: "Abhishek Sharma",
+  common_name: "Abhishek Sharma",
+  nationality: "Indian",
+  playing_role: "Allrounder",
+  batting_style: "Left-hand bat",
+  bowling_style: "Slow left-arm orthodox",
+  ipl_teams: ["DC", "SRH"],
+  is_captain_ever: false,
+  ipl_titles_won: 1,
+  orange_cap_won: false,
+  purple_cap_won: false,
+  highest_ipl_score: 141,
+  ipl_centuries: 1,
+  is_finisher: false,
+  is_opener: true,
+  is_overseas: false,
+  is_currently_active: true,
+  is_wicketkeeper: false
+}
 ];
