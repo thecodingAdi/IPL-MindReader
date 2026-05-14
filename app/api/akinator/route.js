@@ -1,4 +1,6 @@
 import { NextResponse } from 'next/server';
+import fs from 'fs';
+import path from 'path';
 export const dynamic = 'force-dynamic';
 import { runEngine } from '@/lib/engine';
 import { selectAndRephraseQuestion, generateGuessReaction } from '@/lib/groq';
@@ -11,8 +13,20 @@ export async function POST(request) {
       return NextResponse.json({ error: 'Invalid game state' }, { status: 400 });
     }
 
+    // STEP 0: Load Memory
+    let memory = null;
+    try {
+      const memoryPath = path.join(process.cwd(), 'data', 'memory.json');
+      if (fs.existsSync(memoryPath)) {
+        memory = JSON.parse(fs.readFileSync(memoryPath, 'utf8'));
+      }
+    } catch (e) {
+      console.warn("Could not load memory, continuing without learning bias.");
+    }
+
     // STEP 1: Run local robust engine
-    const engineResult = runEngine(gameState);
+    const engineResult = runEngine(gameState, memory);
+
 
     let displayText = null;
     let reactionText = null;

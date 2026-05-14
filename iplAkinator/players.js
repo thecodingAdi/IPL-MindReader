@@ -334,5 +334,26 @@ const players = [
   is_overseas: false,
   is_currently_active: true,
   is_wicketkeeper: false
+},
+{
+  player_id: "sd_01",
+  full_name: "Shivam Dube",
+  common_name: "Shivam Dube",
+  nationality: "Indian",
+  playing_role: "Allrounder",
+  batting_style: "Left-hand bat",
+  bowling_style: "Right-arm medium",
+  ipl_teams: ["RCB", "RR", "CSK"],
+  is_captain_ever: false,
+  ipl_titles_won: 2,
+  orange_cap_won: false,
+  purple_cap_won: false,
+  highest_ipl_score: 95,
+  ipl_centuries: 0,
+  is_finisher: true,
+  is_opener: false,
+  is_overseas: false,
+  is_currently_active: true,
+  is_wicketkeeper: false
 }
 ];

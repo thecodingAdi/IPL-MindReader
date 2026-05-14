@@ -62,6 +62,11 @@ export default function Home() {
   const [candidatesLeft, setCandidatesLeft] = useState(0);
   const [topCandidates, setTopCandidates] = useState([]);
   const [error, setError] = useState(null);
+  const [showCorrectionModal, setShowCorrectionModal] = useState(false);
+  const [actualPlayerName, setActualPlayerName] = useState('');
+  const [isLearning, setIsLearning] = useState(false);
+  const [learningMessage, setLearningMessage] = useState(null);
+
 
   const startGame = async () => {
     setGameState('PLAYING');
@@ -133,6 +138,43 @@ export default function Home() {
     // Clear reaction temporarily while loading next step
     setHostReaction(null); 
     await fetchNextStep(newHistory);
+  };
+
+  const learnFromGame = async (isCorrect, correctionName = null) => {
+    setIsLearning(true);
+    try {
+      const payload = {
+        isCorrect,
+        history: history.map(h => ({ questionId: h.questionId, answer: h.answer })),
+        confidence,
+        guessedId: playerData?.id
+      };
+
+      if (isCorrect) {
+        payload.playerId = playerData?.id;
+      } else if (correctionName) {
+        payload.actualName = correctionName;
+      }
+
+      const response = await fetch('/api/learn', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+
+      if (response.ok) {
+        setLearningMessage(isCorrect ? "✅ Strengthened my knowledge!" : "🙏 Thanks! I'll learn from this.");
+        setTimeout(() => setLearningMessage(null), 3000);
+      }
+    } catch (err) {
+      console.error("Learning failed:", err);
+    } finally {
+      setIsLearning(false);
+      if (!isCorrect) {
+        setShowCorrectionModal(false);
+        setGameState('START');
+      }
+    }
   };
 
   // Get primary team color if playerData exists
@@ -298,22 +340,69 @@ export default function Home() {
                   <div className="options-grid" style={{ marginTop: '30px' }}>
                     <button
                       className="action-btn btn-yes"
-                      onClick={() => setGameState('START')}
+                      disabled={isLearning}
+                      onClick={() => {
+                        learnFromGame(true);
+                        setGameState('START');
+                      }}
                     >
                       🏆 YES! PLAY AGAIN
                     </button>
                     <button
                       className="action-btn btn-no"
-                      onClick={() => setGameState('START')}
+                      disabled={isLearning}
+                      onClick={() => setShowCorrectionModal(true)}
                     >
-                      ❌ NO! TRY AGAIN
+                      ❌ NO! THAT'S WRONG
                     </button>
                   </div>
                 </div>
               </div>
             </div>
+
+            {/* Learning Modal */}
+            {showCorrectionModal && (
+              <div className="modal-overlay">
+                <div className="scoreboard-panel correction-modal">
+                  <h3 className="title-glow" style={{ fontSize: '1.5rem', marginBottom: '10px' }}>I MISSED IT! 😅</h3>
+                  <p style={{ color: 'var(--text-muted)', marginBottom: '20px' }}>Who were you actually thinking of?</p>
+                  <input 
+                    type="text" 
+                    className="correction-input"
+                    placeholder="Enter Player Name..."
+                    value={actualPlayerName}
+                    onChange={(e) => setActualPlayerName(e.target.value)}
+                  />
+                  <div className="options-grid" style={{ marginTop: '20px' }}>
+                    <button 
+                      className="action-btn btn-yes"
+                      disabled={!actualPlayerName || isLearning}
+                      onClick={() => learnFromGame(false, actualPlayerName)}
+                    >
+                      {isLearning ? 'LEARNING...' : 'SUBMIT & LEARN'}
+                    </button>
+                    <button 
+                      className="action-btn btn-no"
+                      onClick={() => {
+                        setShowCorrectionModal(false);
+                        setGameState('START');
+                      }}
+                    >
+                      SKIP
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {learningMessage && (
+              <div className="learning-toast">
+                {learningMessage}
+              </div>
+            )}
           </div>
         )}
+
       </div>
     </>
   );
