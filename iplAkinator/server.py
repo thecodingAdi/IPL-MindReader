@@ -42,14 +42,14 @@ QUESTIONS = [
         "Would you call your player a specialist batsman?",
         "Is batting the main strength of your player?",
         "Is your player the kind who's picked mainly to score runs?"
-    ],"eval":"p['role'] in ('Batsman','Wicketkeeper-Batsman')"},
+    ],"eval":"p['role'] in ('Batsman','Wicketkeeper-Batsman','All-rounder')"},
 
     {"id":"role_bowl","cat":"role","ph":[
         "Is your player primarily a bowler?",
         "Is bowling the main weapon of your player?",
         "Would your player be picked mainly for their bowling ability?",
         "Is your player someone who's feared for their bowling?"
-    ],"eval":"p['role']=='Bowler'"},
+    ],"eval":"p['role'] in ('Bowler', 'All-rounder')"},
 
     {"id":"role_ar","cat":"role","ph":[
         "Is your player an all-rounder who contributes with both bat and ball?",
@@ -63,7 +63,8 @@ QUESTIONS = [
         "Is your player a wicketkeeper?",
         "Does your player don the gloves during matches?",
         "Is your player known for their wicketkeeping skills?"
-    ],"eval":"p['is_wk']"},
+    ],"eval":"p['is_wk'] or 'Wicketkeeper' in p['role']"},
+
 
     # ── NATIONALITY ──
     {"id":"overseas","cat":"nat","ph":[
@@ -594,34 +595,39 @@ def answer_question():
         "a": ans
     })
 
-    # Update weights
+    # ─── Robust Bayesian Update ───
+    reliability_map = {
+        "nat": 0.98, "team": 0.95, "role": 0.85, "era": 0.90,
+        "pos": 0.80, "bat": 0.88, "bowl": 0.88, "exp": 0.92, "award": 0.92
+    }
+    reliability = reliability_map.get(q["cat"], 0.85)
+    
     score_map = {"yes": 1.0, "probably": 0.7, "dunno": 0, "probably_not": -0.7, "no": -1.0}
     score = score_map.get(ans, 0)
-    cands = session["candidates"]
+    abs_score = abs(score)
 
-    if score > 0:
+    if score != 0:
         for c in cands:
-            if evaluate_question(q, c):
-                c["_w"] *= (1 + score)
+            matches = evaluate_question(q, c)
+            if score > 0:
+                likelihood = reliability if matches else (1 - reliability)
             else:
-                c["_w"] *= max(0.01, 1 - score * 0.85)
-    elif score < 0:
-        a = abs(score)
-        for c in cands:
-            if evaluate_question(q, c):
-                c["_w"] *= max(0.01, 1 - a * 0.85)
-            else:
-                c["_w"] *= (1 + a)
+                likelihood = reliability if not matches else (1 - reliability)
+            
+            # Adjust likelihood based on answer strength (e.g. Probably vs Yes)
+            likelihood = 0.5 + (likelihood - 0.5) * abs_score
+            c["_w"] *= (likelihood * 2)
 
-    # Prune low-weight candidates
+    # Prune and Normalize
     if cands:
         max_w = max(c["_w"] for c in cands)
-        cands = [c for c in cands if c["_w"] > max_w * 0.003]
+        cands = [c for c in cands if c["_w"] > max_w * 0.001] # More lenient pruning
         total = sum(c["_w"] for c in cands)
         if total > 0:
             for c in cands:
-                c["_w"] = c["_w"] / total * len(cands)
+                c["_w"] /= total
         session["candidates"] = cands
+
 
     # Check stopping conditions
     conf = get_confidence(cands)

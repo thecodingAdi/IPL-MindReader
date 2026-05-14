@@ -1,9 +1,10 @@
 const questions = [
     // ROLE
-    { id: "role_bat", cat: "role", ph: "Is your player primarily known for their batting?", eval: (p) => ["Batsman", "Wicketkeeper-Batsman"].includes(p.role) },
-    { id: "role_bowl", cat: "role", ph: "Is your player primarily a bowler?", eval: (p) => p.role === 'Bowler' },
+    { id: "role_bat", cat: "role", ph: "Is your player primarily known for their batting?", eval: (p) => ["Batsman", "Wicketkeeper-Batsman", "All-rounder"].includes(p.role) },
+    { id: "role_bowl", cat: "role", ph: "Is your player primarily a bowler?", eval: (p) => ["Bowler", "All-rounder"].includes(p.role) },
     { id: "role_ar", cat: "role", ph: "Is your player an all-rounder?", eval: (p) => p.role === 'All-rounder' },
-    { id: "role_wk", cat: "role", ph: "Is your player a wicketkeeper?", eval: (p) => p.is_wk },
+    { id: "role_wk", cat: "role", ph: "Is your player a wicketkeeper?", eval: (p) => p.is_wk || p.role.includes("Wicketkeeper") },
+
 
     // NATIONALITY
     { id: "overseas", cat: "nat", ph: "Is your player an overseas cricketer?", eval: (p) => p.is_overseas },

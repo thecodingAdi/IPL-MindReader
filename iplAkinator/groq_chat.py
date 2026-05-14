@@ -93,6 +93,12 @@ class IPLAkinatorCLI:
             return top_questions[0], top_questions[0]["ph"][0]
 
     def update_probabilities(self, q, ans):
+        reliability_map = {
+            "nat": 0.98, "team": 0.95, "role": 0.85, "era": 0.90,
+            "pos": 0.80, "bat": 0.88, "bowl": 0.88, "exp": 0.92, "award": 0.92
+        }
+        reliability = reliability_map.get(q["cat"], 0.85)
+        
         score_map = {
             "y": 1.0, "yes": 1.0, 
             "p": 0.7, "probably": 0.7, 
@@ -101,29 +107,28 @@ class IPLAkinatorCLI:
             "n": -1.0, "no": -1.0
         }
         score = score_map.get(ans.lower(), 0)
+        abs_score = abs(score)
         
-        if score > 0:
+        if score != 0:
             for c in self.candidates:
-                if evaluate_question(q, c):
-                    c["_w"] *= (1 + score)
+                matches = evaluate_question(q, c)
+                if score > 0:
+                    likelihood = reliability if matches else (1 - reliability)
                 else:
-                    c["_w"] *= max(0.01, 1 - score * 0.85)
-        elif score < 0:
-            a = abs(score)
-            for c in self.candidates:
-                if evaluate_question(q, c):
-                    c["_w"] *= max(0.01, 1 - a * 0.85)
-                else:
-                    c["_w"] *= (1 + a)
-                    
-        # Prune unlikely candidates and normalize weights
+                    likelihood = reliability if not matches else (1 - reliability)
+                
+                likelihood = 0.5 + (likelihood - 0.5) * abs_score
+                c["_w"] *= (likelihood * 2)
+
+        # Prune and normalize
         if self.candidates:
             max_w = max(c["_w"] for c in self.candidates)
-            self.candidates = [c for c in self.candidates if c["_w"] > max_w * 0.003]
+            self.candidates = [c for c in self.candidates if c["_w"] > max_w * 0.001]
             total = sum(c["_w"] for c in self.candidates)
             if total > 0:
                 for c in self.candidates:
-                    c["_w"] = (c["_w"] / total) * len(self.candidates)
+                    c["_w"] /= total
+
 
     def get_confidence(self):
         if not self.candidates: return 0
