@@ -25,7 +25,7 @@ export async function POST(request) {
     }
 
     // STEP 1: Run local robust engine
-    const engineResult = runEngine(gameState, memory);
+    const engineResult = runEngine(gameState, memory, gameState.excludedIds || []);
 
 
     let displayText = null;

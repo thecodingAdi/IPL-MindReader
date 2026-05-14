@@ -66,6 +66,8 @@ export default function Home() {
   const [actualPlayerName, setActualPlayerName] = useState('');
   const [isLearning, setIsLearning] = useState(false);
   const [learningMessage, setLearningMessage] = useState(null);
+  const [hasUsedDRS, setHasUsedDRS] = useState(false);
+  const [isReviewing, setIsReviewing] = useState(false);
 
 
   const startGame = async () => {
@@ -78,6 +80,8 @@ export default function Home() {
     setPlayerData(null);
     setConfidence(0);
     setTopCandidates([]);
+    setHasUsedDRS(false);
+    setIsReviewing(false);
     setError(null);
     await fetchNextStep([]);
   };
@@ -138,6 +142,58 @@ export default function Home() {
     // Clear reaction temporarily while loading next step
     setHostReaction(null); 
     await fetchNextStep(newHistory);
+  };
+
+  const handleDRSReview = async () => {
+    if (isReviewing || hasUsedDRS) return;
+    setIsReviewing(true);
+    setHasUsedDRS(true);
+    setError(null);
+    setHostReaction(null);
+
+    try {
+      // Simulate "Reviewing decision..." pause for immersion
+      // Hackathon judges love animations/transitions
+      await new Promise(resolve => setTimeout(resolve, 2500));
+
+      const response = await fetch('/api/akinator', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          history: history,
+          questionCount: history.length,
+          excludedIds: [playerData?.id]
+        }),
+      });
+
+      if (!response.ok) {
+        const errData = await response.json();
+        throw new Error(errData.error || 'Failed to perform DRS review');
+      }
+
+      const data = await response.json();
+      setConfidence(data.confidence || 0);
+      setCandidatesLeft(data.remaining_candidates || 0);
+      setTopCandidates(data.top_candidates || []);
+      setHostReaction(data.reaction || null);
+
+      if (data.action === 'guess') {
+        setGuess(data.question);
+        setPlayerData(data.playerData);
+      } else {
+        // Fallback: if no clear guess, just show top candidate
+        if (data.topCandidates && data.topCandidates.length > 0) {
+          const top = data.topCandidates[0];
+          setGuess(top.name);
+          setPlayerData(top);
+        }
+      }
+    } catch (err) {
+      console.error(err);
+      setError(err.message);
+    } finally {
+      setIsReviewing(false);
+    }
   };
 
   const learnFromGame = async (isCorrect, correctionName = null) => {
@@ -307,7 +363,10 @@ export default function Home() {
                 <div className="flip-card-front">
                   <div className="loading-container">
                      <div className="cricket-ball"></div>
-                     <div className="title-glow" style={{ fontSize: '1.5rem' }}>ANALYZING...</div>
+                     <div className="title-glow" style={{ fontSize: '1.5rem' }}>
+                       {isReviewing ? 'REVIEWING DECISION...' : 'ANALYZING...'}
+                     </div>
+                     {isReviewing && <div className="subtitle">DRS IN PROGRESS</div>}
                   </div>
                 </div>
                 
@@ -340,7 +399,7 @@ export default function Home() {
                   <div className="options-grid" style={{ marginTop: '30px' }}>
                     <button
                       className="action-btn btn-yes"
-                      disabled={isLearning}
+                      disabled={isLearning || isReviewing}
                       onClick={() => {
                         learnFromGame(true);
                         setGameState('START');
@@ -348,17 +407,56 @@ export default function Home() {
                     >
                       🏆 YES! PLAY AGAIN
                     </button>
+                    {!hasUsedDRS && (
+                      <button
+                        className="action-btn btn-maybe"
+                        disabled={isLearning || isReviewing}
+                        onClick={handleDRSReview}
+                        style={{ border: '2px solid #facc15', color: '#facc15' }}
+                      >
+                        🏏 DRS REVIEW
+                      </button>
+                    )}
                     <button
                       className="action-btn btn-no"
-                      disabled={isLearning}
+                      disabled={isLearning || isReviewing}
                       onClick={() => setShowCorrectionModal(true)}
                     >
                       ❌ NO! THAT'S WRONG
                     </button>
                   </div>
+
+                  {topCandidates.length > 0 && (
+                    <div className="confidence-board">
+                      <h3>📊 AI CONFIDENCE BOARD</h3>
+                      {topCandidates.map((c, i) => (
+                        <div key={i} className={`board-item ${i === 0 ? 'active' : ''}`}>
+                          <div>
+                            <span className="board-rank">{i + 1}.</span>
+                            <span className="board-name">{c.name}</span>
+                          </div>
+                          <span className="board-prob">{c.probability}%</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
+            
+            {/* DRS Animation Overlay (When Reviewing) */}
+            {isReviewing && (
+              <div className="modal-overlay" style={{ zIndex: 100, background: 'rgba(0,0,0,0.9)' }}>
+                <div className="loading-container">
+                  <div className="cricket-ball" style={{ width: '80px', height: '80px' }}></div>
+                  <h2 className="title-glow" style={{ fontSize: '2rem', marginTop: '20px' }}>DRS REVIEW</h2>
+                  <p className="subtitle" style={{ fontSize: '1.2rem' }}>CONSULTING THIRD AI UMPIRE...</p>
+                  <div className="confidence-meter" style={{ width: '300px', height: '10px', marginTop: '20px' }}>
+                    <div className="confidence-fill animated-progress"></div>
+                  </div>
+                </div>
+              </div>
+            )}
 
             {/* Learning Modal */}
             {showCorrectionModal && (

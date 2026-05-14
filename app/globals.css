@@ -648,3 +648,69 @@ body {
   opacity: 0.5;
   cursor: not-allowed;
 }
+
+/* DRS PROGRESS ANIMATION */
+.animated-progress {
+  width: 0;
+  animation: fillProgress 2.5s linear forwards;
+  background: linear-gradient(90deg, var(--ipl-gold), #fff);
+  box-shadow: 0 0 15px var(--ipl-gold);
+}
+
+@keyframes fillProgress {
+  from { width: 0; }
+  to { width: 100%; }
+}
+
+.confidence-board {
+  margin-top: 40px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 20px;
+  text-align: left;
+}
+
+.confidence-board h3 {
+  font-family: 'Share Tech Mono', monospace;
+  color: var(--ipl-gold);
+  font-size: 0.9rem;
+  margin-bottom: 15px;
+  letter-spacing: 2px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.board-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 10px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.board-item:last-child {
+  border-bottom: none;
+}
+
+.board-rank {
+  color: var(--text-muted);
+  margin-right: 10px;
+}
+
+.board-name {
+  font-weight: 600;
+}
+
+.board-prob {
+  font-family: 'Share Tech Mono', monospace;
+  color: var(--neon-blue);
+}
+
+.board-item.active .board-name {
+  color: var(--ipl-gold);
+}
+
+.board-item.active .board-prob {
+  color: var(--ipl-gold);
+}
